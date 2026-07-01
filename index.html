@@ -1,1 +1,510 @@
-# shift
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shift — Troca os itens da tua garagem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08090c;
+  --bg-raised:#0e1015;
+  --line:#1b1d24;
+  --text:#e9eaef;
+  --muted:#7d818f;
+  --muted-2:#4d5060;
+  --accent:#7c5cff;
+  --accent-soft:rgba(124,92,255,.12);
+  --cyan:#3ddcff;
+  --mono:'JetBrains Mono',monospace;
+  --display:'Space Grotesk',sans-serif;
+  --body:'Inter',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--body);
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;}
+
+/* ---------- background texture ---------- */
+.grid-field{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  background-image:
+    linear-gradient(rgba(124,92,255,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,92,255,.05) 1px, transparent 1px);
+  background-size:64px 64px;
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%);
+  pointer-events:none;
+}
+
+/* ---------- header ---------- */
+header{
+  width:100%;
+  padding:22px 8%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:fixed;
+  top:0;
+  left:0;
+  backdrop-filter:blur(14px);
+  background:rgba(8,9,12,.6);
+  border-bottom:1px solid var(--line);
+  z-index:999;
+}
+.logo{
+  font-family:var(--display);
+  font-size:22px;
+  font-weight:700;
+  letter-spacing:.5px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.logo-mark{
+  width:11px;
+  height:11px;
+  background:var(--accent);
+  box-shadow:0 0 14px var(--accent);
+  transform:rotate(45deg);
+  flex-shrink:0;
+}
+nav{display:flex;align-items:center;gap:36px;}
+nav a{
+  text-decoration:none;
+  font-size:14px;
+  color:var(--muted);
+  transition:color .2s;
+}
+nav a:hover{color:var(--text);}
+.nav-download{
+  padding:10px 20px;
+  background:var(--text);
+  color:var(--bg) !important;
+  border-radius:8px;
+  font-weight:600;
+  font-size:13px;
+}
+
+/* ---------- hero ---------- */
+.hero{
+  position:relative;
+  z-index:1;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:150px 20px 60px;
+  text-align:center;
+}
+.tag{
+  font-family:var(--mono);
+  color:var(--accent);
+  font-size:12px;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  margin-bottom:28px;
+  padding:7px 16px;
+  border:1px solid var(--accent-soft);
+  border-radius:100px;
+  background:var(--accent-soft);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.tag::before{
+  content:"";
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--cyan);
+  box-shadow:0 0 8px var(--cyan);
+}
+.hero h1{
+  font-family:var(--display);
+  font-size:clamp(58px,9vw,118px);
+  font-weight:700;
+  line-height:.95;
+  letter-spacing:-2px;
+}
+.hero h2{
+  font-family:var(--body);
+  font-size:clamp(18px,2.4vw,24px);
+  font-weight:400;
+  color:var(--muted);
+  margin:22px 0 44px;
+  max-width:560px;
+  line-height:1.5;
+}
+.hero h2 b{color:var(--text);font-weight:600;}
+
+.cta-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center;}
+.download{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:17px 34px;
+  background:var(--accent);
+  color:#fff;
+  text-decoration:none;
+  border-radius:10px;
+  font-size:16px;
+  font-weight:600;
+  font-family:var(--body);
+  transition:.25s;
+  box-shadow:0 0 0 0 rgba(124,92,255,.5);
+}
+.download:hover{
+  transform:translateY(-3px);
+  box-shadow:0 12px 30px rgba(124,92,255,.35);
+}
+.download svg{width:18px;height:18px;}
+.version-note{
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--muted-2);
+}
+
+/* ---------- live stat strip (signature element) ---------- */
+.stat-strip{
+  position:relative;
+  z-index:1;
+  margin-top:70px;
+  width:min(760px,92%);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+  background:var(--bg-raised);
+}
+.stat{
+  padding:22px 18px;
+  text-align:left;
+  border-right:1px solid var(--line);
+  position:relative;
+}
+.stat:last-child{border-right:none;}
+.stat-label{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:1.5px;
+  color:var(--muted-2);
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+.stat-value{
+  font-family:var(--display);
+  font-size:30px;
+  font-weight:700;
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+}
+.stat-value span{font-size:14px;color:var(--muted);font-weight:500;font-family:var(--body);}
+.stat-value.up{color:var(--cyan);}
+.stat-value.down{color:var(--accent);}
+
+/* ---------- showcase ---------- */
+.showcase{
+  position:relative;
+  z-index:1;
+  margin-top:90px;
+  width:min(1180px,92%);
+}
+.showcase-glow{
+  position:absolute;
+  inset:-80px;
+  background:radial-gradient(ellipse 60% 50% at 50% 40%, rgba(124,92,255,.18), transparent 70%);
+  filter:blur(60px);
+  z-index:-1;
+}
+.showcase-frame{
+  border-radius:16px;
+  border:1px solid var(--line);
+  background:var(--bg-raised);
+  padding:10px;
+  box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+.showcase-frame img{
+  width:100%;
+  display:block;
+  border-radius:10px;
+}
+
+/* ---------- feature belt ---------- */
+.belt{
+  position:relative;
+  z-index:1;
+  max-width:1180px;
+  margin:150px auto 0;
+  padding:0 8%;
+}
+.belt-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  margin-bottom:50px;
+  flex-wrap:wrap;
+  gap:16px;
+}
+.belt-head h3{
+  font-family:var(--display);
+  font-size:clamp(30px,4vw,44px);
+  font-weight:700;
+  letter-spacing:-1px;
+}
+.belt-head p{
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--muted-2);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  max-width:220px;
+}
+.feature-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:1px;
+  background:var(--line);
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+}
+.feature{
+  background:var(--bg-raised);
+  padding:34px 28px;
+  transition:background .2s;
+}
+.feature:hover{background:#12141b;}
+.feature-icon{
+  width:38px;
+  height:38px;
+  border-radius:9px;
+  background:var(--accent-soft);
+  color:var(--accent);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:22px;
+}
+.feature-icon svg{width:19px;height:19px;}
+.feature h4{
+  font-family:var(--display);
+  font-size:18px;
+  font-weight:600;
+  margin-bottom:10px;
+}
+.feature p{
+  font-size:14px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+/* ---------- cta band ---------- */
+.cta-band{
+  position:relative;
+  z-index:1;
+  max-width:1180px;
+  margin:150px auto 0;
+  padding:0 8%;
+}
+.cta-inner{
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:70px 40px;
+  text-align:center;
+  background:
+    radial-gradient(ellipse 70% 100% at 50% 100%, rgba(124,92,255,.14), transparent 70%),
+    var(--bg-raised);
+}
+.cta-inner h3{
+  font-family:var(--display);
+  font-size:clamp(28px,4vw,42px);
+  font-weight:700;
+  letter-spacing:-1px;
+  margin-bottom:16px;
+}
+.cta-inner p{
+  color:var(--muted);
+  font-size:15px;
+  margin-bottom:36px;
+}
+
+/* ---------- footer ---------- */
+footer{
+  position:relative;
+  z-index:1;
+  max-width:1180px;
+  margin:0 auto;
+  padding:110px 8% 50px;
+  display:grid;
+  grid-template-columns:1.4fr repeat(3,1fr);
+  gap:40px;
+  border-top:1px solid var(--line);
+  margin-top:100px;
+}
+.footer-brand .logo{margin-bottom:14px;}
+.footer-brand p{
+  color:var(--muted-2);
+  font-size:13px;
+  line-height:1.6;
+  max-width:240px;
+}
+footer h5{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--muted-2);
+  margin-bottom:18px;
+  font-weight:500;
+}
+footer ul{list-style:none;}
+footer li{margin:11px 0;}
+footer li a{
+  color:var(--muted);
+  text-decoration:none;
+  font-size:14px;
+  transition:color .2s;
+}
+footer li a:hover{color:var(--text);}
+.footer-bottom{
+  max-width:1180px;
+  margin:60px auto 0;
+  padding:24px 8%;
+  border-top:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  color:var(--muted-2);
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.5px;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+/* ---------- responsive ---------- */
+@media(max-width:860px){
+  nav{gap:20px;}
+  nav a:not(.nav-download){display:none;}
+  .stat-strip{grid-template-columns:1fr;}
+  .stat{border-right:none;border-bottom:1px solid var(--line);}
+  .stat:last-child{border-bottom:none;}
+  .feature-grid{grid-template-columns:1fr;}
+  footer{grid-template-columns:1fr 1fr;}
+  .footer-brand{grid-column:1 / -1;}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto;}
+  *{transition:none !important;}
+}
+</style>
+</head>
+<body>
+
+<div class="grid-field"></div>
+
+<header>
+  <div class="logo"><span class="logo-mark"></span>Shift</div>
+  <nav>
+    <a href="#stats">Como funciona</a>
+    <a href="#footer-links">Comunidade</a>
+    <a class="nav-download" href="https://www.mediafire.com/file/cvbl4w6pfyntazn/Shift_Setup.exe/file">Baixar</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="tag">Item swap · Rocket League</div>
+  <h1>Shift</h1>
+  <h2>Escolhe um item que já tens na garagem e o Shift troca os ficheiros dele pelos do item que <b>querias ver</b> no jogo. Sem desbloqueios, sem contas novas.</h2>
+
+  <div class="cta-row">
+    <a class="download" href="https://www.mediafire.com/file/cvbl4w6pfyntazn/Shift_Setup.exe/file">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Baixar Shift_Setup.exe
+    </a>
+    <span class="version-note">v2.1 · Windows 10/11 · Grátis</span>
+  </div>
+
+  <div class="stat-strip" id="stats">
+    <div class="stat">
+      <div class="stat-label">Passo 1</div>
+      <div class="stat-value">Escolhe<span>um item da tua garagem</span></div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Passo 2</div>
+      <div class="stat-value up">Troca<span>pelo item que queres ver</span></div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Passo 3</div>
+      <div class="stat-value">Joga<span>com o visual trocado</span></div>
+    </div>
+  </div>
+
+  <div class="showcase">
+    <div class="showcase-glow"></div>
+    <div class="showcase-frame">
+      <img src="https://media.discordapp.net/attachments/1501895971716595865/1515284830580117594/image.png?ex=6a4584b8&is=6a443338&hm=e0435d5a4d7fb5979836d14a33f77237085475ec59d7cb63d75a1bc1c88b81bf&=&format=webp&quality=lossless&width=1240&height=799" alt="Interface do Shift a mostrar a troca de itens da garagem">
+    </div>
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="cta-inner">
+    <h3>Pronto para trocar o visual da tua garagem?</h3>
+    <p>Instalação em menos de um minuto. Sem conta, sem subscrição.</p>
+    <a class="download" href="https://www.mediafire.com/file/cvbl4w6pfyntazn/Shift_Setup.exe/file">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Baixar Shift_Setup.exe
+    </a>
+  </div>
+</section>
+
+<footer id="footer-links">
+  <div class="footer-brand">
+    <div class="logo"><span class="logo-mark"></span>Shift</div>
+    <p>Troca os ficheiros entre itens que já tens na garagem do Rocket League. Feito por jogadores, para jogadores.</p>
+  </div>
+  <div>
+    <h5>Produto</h5>
+    <ul>
+      <li><a href="#">Início</a></li>
+      <li><a href="https://www.mediafire.com/file/cvbl4w6pfyntazn/Shift_Setup.exe/file">Download</a></li>
+      <li><a href="#stats">Como funciona</a></li>
+    </ul>
+  </div>
+  <div>
+    <h5>Suporte</h5>
+    <ul>
+      <li><a href="#">Ajuda</a></li>
+      <li><a href="#">Documentação</a></li>
+      <li><a href="#">Perguntas frequentes</a></li>
+    </ul>
+  </div>
+  <div>
+    <h5>Comunidade</h5>
+    <ul>
+      <li><a href="#">Discord</a></li>
+      <li><a href="#">Feedback</a></li>
+      <li><a href="#">Changelog</a></li>
+    </ul>
+  </div>
+</footer>
+<div class="footer-bottom">
+  <span>© 2026 SHIFT</span>
+  <span>NÃO AFILIADO À PSYONIX</span>
+</div>
+
+</body>
+</html>
